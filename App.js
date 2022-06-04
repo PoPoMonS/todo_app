@@ -14,31 +14,44 @@ import { theme } from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Fontisto } from "@expo/vector-icons";
 
-const STORAGE_KEY = "@toDos";
+const STORAGE_KEY_WORKING = "@working";
+const STORAGE_KEY_TODO = "@toDos";
 
 export default function App() {
 	const [working, setWorking] = useState(true);
 	const [text, setText] = useState("");
 	const [toDos, setToDos] = useState({});
+
+	useEffect(() => {
+		loadToDos();
+		loadWorking();
+	}, []);
+
 	const travel = () => {
 		setWorking(false);
+		saveWorking(false);
 	};
 	const work = () => {
 		setWorking(true);
+		saveWorking(true);
+	};
+	const saveWorking = async (toSave) => {
+		await AsyncStorage.setItem(STORAGE_KEY_WORKING, JSON.stringify(toSave));
+	};
+	const loadWorking = async () => {
+		const s = await AsyncStorage.getItem(STORAGE_KEY_WORKING);
+		setWorking(JSON.parse(s));
 	};
 	const onChangeText = (payload) => {
 		setText(payload);
 	};
 	const saveToDos = async (toSave) => {
-		await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+		await AsyncStorage.setItem(STORAGE_KEY_TODO, JSON.stringify(toSave));
 	};
 	const loadToDos = async () => {
-		const s = await AsyncStorage.getItem(STORAGE_KEY);
+		const s = await AsyncStorage.getItem(STORAGE_KEY_TODO);
 		setToDos(JSON.parse(s));
 	};
-	useEffect(() => {
-		loadToDos();
-	}, []);
 	const addToDo = async () => {
 		if (text === "") {
 			return;
