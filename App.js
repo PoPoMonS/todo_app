@@ -50,6 +50,9 @@ export default function App() {
 	};
 	const loadToDos = async () => {
 		const s = await AsyncStorage.getItem(STORAGE_KEY_TODO);
+		if (s === null) {
+			return;
+		}
 		setToDos(JSON.parse(s));
 	};
 	const addToDo = async () => {
@@ -59,7 +62,7 @@ export default function App() {
 		// const newToDos = Object.assign({}, toDos, {
 		// 	[Date.now()]: { text, work: working },
 		// });
-		const newToDos = { ...toDos, [Date.now()]: { text, working } };
+		const newToDos = { ...toDos, [Date.now()]: { text, working, done: false } };
 		setToDos(newToDos);
 		await saveToDos(newToDos);
 		setText("");
@@ -78,7 +81,16 @@ export default function App() {
 				style: "destructive",
 			},
 		]);
-		return;
+	};
+	const doneToDo = async (key) => {
+		const newToDos = { ...toDos };
+		if (newToDos[key].done === true) {
+			newToDos[key].done = false;
+		} else {
+			newToDos[key].done = true;
+		}
+		setToDos(newToDos);
+		await saveToDos(newToDos);
 	};
 	return (
 		<View style={styles.container}>
@@ -86,7 +98,10 @@ export default function App() {
 			<View style={styles.header}>
 				<TouchableOpacity onPress={work}>
 					<Text
-						style={{ ...styles.btnText, color: working ? "ivory" : theme.grey }}
+						style={{
+							...styles.btnText,
+							color: working ? "ivory" : theme.grey,
+						}}
 					>
 						Work
 					</Text>
@@ -114,14 +129,37 @@ export default function App() {
 				{Object.keys(toDos).map((key) =>
 					toDos[key].working === working ? (
 						<View style={styles.toDo} key={key}>
-							<Text style={styles.toDoText}>{toDos[key].text}</Text>
-							<TouchableOpacity
-								onPress={() => {
-									deleteToDo(key);
+							<Text
+								style={{
+									...styles.toDoText,
+									textDecorationLine: toDos[key].done ? "line-through" : "none",
 								}}
 							>
-								<Fontisto name="trash" size={18} color="ivory" />
-							</TouchableOpacity>
+								{toDos[key].text}
+							</Text>
+							<View
+								style={{
+									flexDirection: "row",
+									justifyContent: "space-between",
+								}}
+							>
+								<TouchableOpacity
+									style={{ marginHorizontal: 5 }}
+									onPress={() => {
+										doneToDo(key);
+									}}
+								>
+									<Fontisto name="checkbox-active" size={18} color="ivory" />
+								</TouchableOpacity>
+								<TouchableOpacity
+									style={{ marginHorizontal: 5 }}
+									onPress={() => {
+										deleteToDo(key);
+									}}
+								>
+									<Fontisto name="trash" size={18} color="ivory" />
+								</TouchableOpacity>
+							</View>
 						</View>
 					) : null
 				)}
