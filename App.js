@@ -9,6 +9,7 @@ import {
 	TextInput,
 	ScrollView,
 	Alert,
+	Platform,
 } from "react-native";
 import { theme } from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -81,19 +82,29 @@ export default function App() {
 		setTextInput("");
 	};
 	const deleteToDo = (key) => {
-		Alert.alert("Delete", "Sure?", [
-			{ text: "Cancel" },
-			{
-				text: "Confirm",
-				onPress: async () => {
-					const newToDos = { ...toDos };
-					delete newToDos[key];
-					setToDos(newToDos);
-					await saveToDos(newToDos);
+		if (Platform.OS === "web") {
+			const ok = confirm("Do you want to delete this To Do?");
+			if (ok) {
+				const newToDos = { ...toDos };
+				delete newToDos[key];
+				setToDos(newToDos);
+				await saveToDos(newToDos);
+			}
+		} else {
+			Alert.alert("Delete", "Sure?", [
+				{ text: "Cancel" },
+				{
+					text: "Confirm",
+					onPress: async () => {
+						const newToDos = { ...toDos };
+						delete newToDos[key];
+						setToDos(newToDos);
+						await saveToDos(newToDos);
+					},
+					style: "destructive",
 				},
-				style: "destructive",
-			},
-		]);
+			]);
+		}
 	};
 	const doneToDo = async (key) => {
 		const newToDos = { ...toDos };
@@ -122,7 +133,6 @@ export default function App() {
 	const onChangeTextEdit = (payload) => {
 		setTextEdit(payload);
 	};
-	console.log(toDos);
 	return (
 		<View style={styles.container}>
 			<StatusBar style="auto" />
